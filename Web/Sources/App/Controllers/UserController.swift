@@ -31,7 +31,7 @@ struct UserController: RouteCollection {
         return user.response
     }
 
-    func create(req: Request) async throws -> User {
+    func create(req: Request) async throws -> UserToken {
         try UserRequest.validate(content: req)
         let create = try req.content.decode(UserRequest.self)
         guard create.password == create.confirmPassword else {
@@ -43,15 +43,18 @@ struct UserController: RouteCollection {
             passwordHash: Bcrypt.hash(create.password)
         )
         try await user.save(on: req.db)
-        return user
+        
+        let token = try user.generateToken()
+        try await token.save(on: req.db)
+        return token
     }
     
-    func get(req: Request) async throws -> User {
+    func get(req: Request) async throws -> UserResponse {
         try req.auth.require(User.self)
         guard let user = try await User.find(req.parameters.get("id"), on: req.db) else {
             throw Abort(.notFound)
         }
-        return user
+        return user.response
     }
 
     func delete(req: Request) async throws -> HTTPStatus {
@@ -60,8 +63,8 @@ struct UserController: RouteCollection {
         return .noContent
     }
     
-    func currentUser(req: Request) async throws -> User {
-        return try req.auth.require(User.self)
+    func currentUser(req: Request) async throws -> UserResponse {
+        return try req.auth.require(User.self).response
     }
     
 }

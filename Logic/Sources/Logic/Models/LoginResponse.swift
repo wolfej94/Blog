@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  LoginResponse.swift
 //  
 //
 //  Created by James Wolfe on 16/07/2023.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LoginResponse: Codable {
+final class LoginResponse: Codable {
     
     // MARK: - Variables
     let token: String

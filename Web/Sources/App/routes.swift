@@ -6,4 +6,5 @@ func routes(_ app: Application) throws {
     try basicProtected.register(collection: AuthController())
     let tokenProtected = app.grouped(UserToken.authenticator())
     try tokenProtected.register(collection: UserController())
+    try tokenProtected.register(collection: PostController())
 }

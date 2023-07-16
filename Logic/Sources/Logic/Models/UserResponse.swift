@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class UserResponse: NSObject, Codable {
+public final class UserResponse: NSObject, Codable {
     
     // MARK: - Variables
     public let id: UUID

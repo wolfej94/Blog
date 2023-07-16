@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class UserRequest: NSObject, Codable {
+public final class UserRequest: NSObject, Codable {
     
     // MARK: - Variables
     public var name: String
