@@ -1,5 +1,7 @@
+
 import Fluent
 import Vapor
+import Logic
 
 final class User: Model, Content {
     static let schema = "users"
@@ -27,26 +29,16 @@ final class User: Model, Content {
 }
 
 extension User {
-    struct Create: Content {
-        var name: String
-        var email: String
-        var password: String
-        var confirmPassword: String
-    }
     
-    struct Response: Content {
-        var id: UUID?
-        var name: String
-        var email: String
-    }
-    
-    var response: Response {
-        return .init(id: id, name: name, email: email)
+    var response: UserResponse {
+        return .init(id: id!, name: name, email: email)
     }
 }
 
-extension User.Create: Validatable {
-    static func validations(_ validations: inout Validations) {
+extension UserResponse: Content { }
+
+extension UserRequest: Validatable {
+    public static func validations(_ validations: inout Validations) {
         validations.add("name", as: String.self, is: !.empty)
         validations.add("email", as: String.self, is: .email)
         validations.add("password", as: String.self, is: .count(8...))

@@ -1,40 +1,39 @@
 import Fluent
 import Vapor
+import Logic
 
 struct UserController: RouteCollection {
     
     func boot(routes: RoutesBuilder) throws {
         let users = routes.grouped("users")
         users.post(use: create)
-        users.get(use: index)
+        users.get(use: getAll)
         users.group(":id") { user in
-            user.get(use: index)
+            user.get(use: getByID)
         }
         users.group("user") { user in
             user.get(use: currentUser)
             user.delete(use: delete)
         }
     }
-
-    struct IndexResponse: Content {
-        var user: User.Response?
-        var users: [User.Response]?
-    }
-    func index(req: Request) async throws -> IndexResponse {
+    
+    func getAll(req: Request) async throws -> [UserResponse] {
         try req.auth.require(User.self)
-        guard let id = req.parameters.get("id"), let uid = UUID(uuidString: id) else {
-            let users = try await User.query(on: req.db).all().map { $0.response }
-            return .init(users: users)
-        }
-        guard let user = try await User.find(uid, on: req.db) else {
+        let users = try await User.query(on: req.db).all().map { $0.response }
+        return users
+    }
+    
+    func getByID(req: Request) async throws -> UserResponse {
+        try req.auth.require(User.self)
+        guard let user = try await User.find(req.parameters.get("id"), on: req.db) else {
             throw Abort(.notFound)
         }
-        return .init(user: user.response)
+        return user.response
     }
 
     func create(req: Request) async throws -> User {
-        try User.Create.validate(content: req)
-        let create = try req.content.decode(User.Create.self)
+        try UserRequest.validate(content: req)
+        let create = try req.content.decode(UserRequest.self)
         guard create.password == create.confirmPassword else {
             throw Abort(.badRequest, reason: "Passwords did not match")
         }
