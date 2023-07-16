@@ -66,7 +66,7 @@ public class NetworkService {
                 } catch {
                     continuation.resume(throwing: error)
                 }
-            }
+            }.resume()
         }
     }
     
@@ -111,7 +111,7 @@ public class NetworkService {
                 } catch {
                     continuation.resume(throwing: error)
                 }
-            }
+            }.resume()
         }
     }
     

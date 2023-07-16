@@ -9,9 +9,18 @@ import SwiftUI
 
 @main
 struct iOSApp: App {
+    
+    // MARK: - Variables
+    @StateObject var auth = AuthObserver.shared
+    
+    // MARK: - Views
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if auth.token == nil {
+                LoginView()
+            } else {
+                EmptyView()
+            }
         }
     }
 }
