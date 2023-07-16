@@ -1,5 +1,5 @@
 //
-//  LoginView.swift
+//  RegisterView.swift
 //  iOS
 //
 //  Created by James Wolfe on 16/07/2023.
@@ -8,23 +8,27 @@
 import SwiftUI
 import Logic
 
-struct LoginView: View {
+struct RegisterView: View {
     
     // MARK: - Variables
+    @State var name = ""
+    @FocusState var nameFocused: Bool
     @State var email = ""
     @FocusState var emailFocused: Bool
     @State var password = ""
     @FocusState var passwordFocused: Bool
+    @State var confirmPassword = ""
+    @FocusState var confirmPasswordFocused: Bool
     @State var state: UIState = .initial
     
     let authService = Logic(environment: .develop, token: { nil }).auth
     
     // MARK: - Actions
-    func login() {
+    func register() {
         withAnimation { state = .loading }
         Task {
             do {
-                let token = try await authService.login(email: email, password: password)
+                let token = try await authService.register(request: .init(name: name, email: email, password: password, confirmPassword: confirmPassword))
                 await MainActor.run {
                     AuthObserver.shared.token = token
                 }
@@ -42,6 +46,15 @@ struct LoginView: View {
     var body: some View {
         VStack {
             Spacer()
+            TextField("Enter name", text: $name, prompt: .init("Name"))
+                .textContentType(.name)
+                .autocorrectionDisabled()
+                .focused($nameFocused)
+                #if os(iOS)
+                .keyboardType(.emailAddress)
+                .textInputAutocapitalization(.words)
+                .textFieldStyle(.roundedBorder)
+                #endif
             TextField("Enter email", text: $email, prompt: .init("Email"))
                 .textContentType(.emailAddress)
                 .autocorrectionDisabled()
@@ -59,6 +72,14 @@ struct LoginView: View {
                 .textInputAutocapitalization(.never)
                 .textFieldStyle(.roundedBorder)
                 #endif
+            SecureField("Enter password confirmation", text: $confirmPassword, prompt: .init("Confirm Password"))
+                .textContentType(.password)
+                .autocorrectionDisabled()
+                .focused($confirmPasswordFocused)
+                #if os(iOS)
+                .textInputAutocapitalization(.never)
+                .textFieldStyle(.roundedBorder)
+                #endif
             if case .error(let message) = state {
                 HStack {
                     Text(message)
@@ -67,14 +88,14 @@ struct LoginView: View {
                     Spacer()
                 }
             }
-            Button(action: login, label: {
+            Button(action: register, label: {
                 HStack {
                     Spacer()
                     if state == .loading {
                         ProgressView()
                             .foregroundColor(.white)
                     } else {
-                        Text("Log In")
+                        Text("Register")
                             .font(.title2)
                             .foregroundColor(.white)
                     }
@@ -84,16 +105,16 @@ struct LoginView: View {
                 .background(Color.accentColor)
                 .clipShape(RoundedRectangle(cornerRadius: 12.5))
             })
-            .disabled(state == .loading || email.isEmpty || password.isEmpty)
-            .padding(.top)
-            NavigationLink(destination: { RegisterView() }, label: {
-                Text("Register")
-                    .font(.title3)
-                    .foregroundColor(.accentColor)
-            })
+            .disabled(state == .loading || email.isEmpty || password.isEmpty || confirmPassword.isEmpty)
             .padding(.top)
         }
         .onChange(of: emailFocused, { _, newValue in
+            guard newValue, state.isError else { return }
+            withAnimation {
+                state = .initial
+            }
+        })
+        .onChange(of: nameFocused, { _, newValue in
             guard newValue, state.isError else { return }
             withAnimation {
                 state = .initial
@@ -105,20 +126,28 @@ struct LoginView: View {
                 state = .initial
             }
         })
+        .onChange(of: confirmPasswordFocused, { _, newValue in
+            guard newValue, state.isError else { return }
+            withAnimation {
+                state = .initial
+            }
+        })
         .onChange(of: state, { _, newValue in
-            emailFocused = newValue == .loading
-            passwordFocused = newValue == .loading
+            if newValue == .loading {
+                emailFocused = false
+                passwordFocused = false
+                nameFocused = false
+                confirmPasswordFocused = false
+            }
         })
         .onAppear {
-            emailFocused = true
+            nameFocused = true
         }
         .padding()
-        .navigationTitle("Login")
+//        .navigationTitle("Register")
     }
 }
 
-struct LoginView_Previews: PreviewProvider {
-    static var previews: some View {
-        LoginView()
-    }
+#Preview {
+    RegisterView()
 }

@@ -16,7 +16,7 @@ public final class UserRequest: NSObject, Codable {
     public var confirmPassword: String
     
     // MARK: - Initializers
-    init(name: String, email: String, password: String, confirmPassword: String) {
+    public init(name: String, email: String, password: String, confirmPassword: String) {
         self.name = name
         self.email = email
         self.password = password

@@ -41,7 +41,12 @@ public class NetworkService {
         // Apply method and body
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        request.httpBody = body
+        
+        // Apply body if present
+        if let body = body {
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         
         // Apply bearer token authorization header
         if let token = token() {
@@ -83,10 +88,15 @@ public class NetworkService {
         components.queryItems = query
         let url = components.url!
         
-        // Apply method and body
+        // Apply method
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
-        request.httpBody = body
+        
+        // Apply body if present
+        if let body = body {
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         
         // Apply bearer token authorization header
         if let token = token() {

@@ -17,7 +17,9 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             if auth.token == nil {
-                LoginView()
+                NavigationView {
+                    LoginView()
+                }
             } else {
                 EmptyView()
             }
