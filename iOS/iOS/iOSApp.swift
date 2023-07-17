@@ -6,12 +6,17 @@
 //
 
 import SwiftUI
+import Logic
 
 @main
 struct iOSApp: App {
     
     // MARK: - Variables
     @StateObject var auth = AuthObserver.shared
+    private let logic = Logic(
+        environment: .develop,
+        token: { AuthObserver.shared.token }
+    )
     
     // MARK: - Views
     var body: some Scene {
@@ -19,10 +24,14 @@ struct iOSApp: App {
             if auth.token == nil {
                 NavigationView {
                     LoginView()
+                        .environmentObject(logic)
                 }
             } else {
-                EmptyView()
+                MainView()
+                    .environmentObject(logic)
             }
         }
     }
 }
+
+extension Logic: ObservableObject { }

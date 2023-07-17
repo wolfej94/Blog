@@ -16,15 +16,14 @@ struct LoginView: View {
     @State var password = ""
     @FocusState var passwordFocused: Bool
     @State var state: UIState = .initial
-    
-    let authService = Logic(environment: .develop, token: { nil }).auth
+    @EnvironmentObject var logic: Logic
     
     // MARK: - Actions
     func login() {
         withAnimation { state = .loading }
         Task {
             do {
-                let token = try await authService.login(email: email, password: password)
+                let token = try await logic.auth.login(email: email, password: password)
                 await MainActor.run {
                     AuthObserver.shared.token = token
                 }
@@ -86,11 +85,17 @@ struct LoginView: View {
             })
             .disabled(state == .loading || email.isEmpty || password.isEmpty)
             .padding(.top)
-            NavigationLink(destination: { RegisterView() }, label: {
-                Text("Register")
-                    .font(.title3)
-                    .foregroundColor(.accentColor)
-            })
+            NavigationLink(
+                destination: {
+                    RegisterView()
+                        .environmentObject(logic)
+                },
+                label: {
+                    Text("Register")
+                        .font(.title3)
+                        .foregroundColor(.accentColor)
+                }
+            )
             .padding(.top)
         }
         .onChange(of: emailFocused, { _, newValue in
@@ -117,8 +122,12 @@ struct LoginView: View {
     }
 }
 
-struct LoginView_Previews: PreviewProvider {
-    static var previews: some View {
-        LoginView()
-    }
+#Preview {
+    LoginView()
+        .environmentObject(
+            Logic(
+                environment: .develop,
+                token: { AuthObserver.shared.token }
+            )
+        )
 }

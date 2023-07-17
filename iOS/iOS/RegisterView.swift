@@ -20,15 +20,21 @@ struct RegisterView: View {
     @State var confirmPassword = ""
     @FocusState var confirmPasswordFocused: Bool
     @State var state: UIState = .initial
-    
-    let authService = Logic(environment: .develop, token: { nil }).auth
+    @EnvironmentObject var logic: Logic
     
     // MARK: - Actions
     func register() {
         withAnimation { state = .loading }
         Task {
             do {
-                let token = try await authService.register(request: .init(name: name, email: email, password: password, confirmPassword: confirmPassword))
+                let token = try await logic.auth.register(
+                    request: .init(
+                        name: name,
+                        email: email,
+                        password: password,
+                        confirmPassword: confirmPassword
+                    )
+                )
                 await MainActor.run {
                     AuthObserver.shared.token = token
                 }
@@ -144,10 +150,16 @@ struct RegisterView: View {
             nameFocused = true
         }
         .padding()
-//        .navigationTitle("Register")
+        .navigationTitle("Register")
     }
 }
 
 #Preview {
     RegisterView()
+        .environmentObject(
+            Logic(
+                environment: .develop,
+                token: { AuthObserver.shared.token }
+            )
+        )
 }
